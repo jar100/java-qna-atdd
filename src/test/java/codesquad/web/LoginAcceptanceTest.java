@@ -1,5 +1,6 @@
 package codesquad.web;
 
+import codesquad.HtmlFormDataBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.Test;
@@ -15,7 +16,7 @@ public class LoginAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void createForm() throws Exception {
-        ResponseEntity<String> response = template().getForEntity("/login/form", String.class);
+        ResponseEntity<String> response = template().getForEntity("/login", String.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         log.debug("body : {}", response.getBody());
     }
@@ -27,11 +28,7 @@ public class LoginAcceptanceTest extends AcceptanceTest {
         headers.setAccept(Arrays.asList(MediaType.TEXT_HTML));
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
-        String userId = "javajigi";
-        MultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
-        params.add("userId", userId);
-        params.add("password", "test");
-        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<MultiValueMap<String, Object>>(params, headers);
+        HttpEntity<MultiValueMap<String, Object>> request = getMultiValueMapHttpEntity(headers, "test");
 
         ResponseEntity<String> response = template().postForEntity("/login", request, String.class);
 
@@ -45,15 +42,19 @@ public class LoginAcceptanceTest extends AcceptanceTest {
         headers.setAccept(Arrays.asList(MediaType.TEXT_HTML));
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
-        String userId = "javajigi";
-        MultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
-        params.add("userId", userId);
-        params.add("password", "asdasdas");
-        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<MultiValueMap<String, Object>>(params, headers);
-
+        HttpEntity<MultiValueMap<String, Object>> request = getMultiValueMapHttpEntity(headers, "asdasdas");
         ResponseEntity<String> response = template().postForEntity("/login", request, String.class);
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         softly.assertThat(response.getBody().contains("아이디 또는 비밀번호가 틀립니다. 다시 로그인 해주세요.")).isTrue();
+    }
+
+    public HttpEntity<MultiValueMap<String, Object>> getMultiValueMapHttpEntity(HttpHeaders headers, String test) {
+        String userId = "javajigi";
+        return HtmlFormDataBuilder
+                .urlEncodedForm()
+                .addParameter("userId", userId)
+                .addParameter("password", test)
+                .build();
     }
 }

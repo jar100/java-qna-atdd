@@ -24,7 +24,7 @@ public class LoginController {
     private UserService userService;
 
 
-    @GetMapping("/form")
+    @GetMapping("")
     public String LoginForm() {
         return "/user/login";
     }
@@ -34,7 +34,7 @@ public class LoginController {
         try {
             session.setAttribute(HttpSessionUtils.USER_SESSION_KEY,userService.login(userId,password));
             return "redirect:/";
-        } catch (UnAuthenticationException e) {
+        } catch (Exception e) {
             return "/user/login_failed";
         }
     }
