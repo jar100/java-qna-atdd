@@ -25,7 +25,7 @@ public class LoginController {
 
 
     @GetMapping("")
-    public String LoginForm() {
+    public String loginForm() {
         return "/user/login";
     }
 
