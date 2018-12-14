@@ -40,7 +40,7 @@ public class UserAcceptanceTest extends AcceptanceTest {
                 .build();
 
         ResponseEntity<String> response = template().postForEntity("/users", request, String.class);
-
+        log.debug("body : {}",response.getBody());
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
         softly.assertThat(userRepository.findByUserId(userId).isPresent()).isTrue();
         softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/users");
