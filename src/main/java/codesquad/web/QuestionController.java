@@ -1,5 +1,6 @@
 package codesquad.web;
 
+import codesquad.UnAuthorizedException;
 import codesquad.domain.Question;
 import codesquad.domain.User;
 import codesquad.security.LoginUser;
@@ -8,10 +9,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 
@@ -28,11 +26,38 @@ public class QuestionController {
         return "/qna/form";
     }
 
+    @PostMapping("")
+    public String create(@LoginUser User loginUser, Question question) {
+        qnaService.create(loginUser,question);
+        return "redirect:/";
+    }
+
     @GetMapping("/{id}")
     public String show(@PathVariable long id, Model model) {
         Question question = qnaService.findById(id).get();
-        log.debug("qna : {}",question);
         model.addAttribute("question",question);
         return "/qna/show";
     }
+
+    @PutMapping("/{id}")
+    public String update(@LoginUser User loginUser, @PathVariable long id, Question updateQuestion) {
+        qnaService.update(loginUser,id,updateQuestion);
+        return "redirect:/questions/{id}";
+    }
+
+    @DeleteMapping("/{id}")
+    public String deleted(@LoginUser User loginUser, @PathVariable long id) {
+        qnaService.deleteQuestion(loginUser,id);
+        return "redirect:/";
+    }
+
+
+    @GetMapping("/{id}/form")
+    public String updateForm(@LoginUser User loginUser, @PathVariable long id, Model model) {
+        Question question = qnaService.findById(id).filter(q -> q.isOwner(loginUser)).orElseThrow(UnAuthorizedException::new);
+        model.addAttribute("question",question);
+        return "/qna/updateForm";
+    }
+
+
 }

@@ -1,29 +1,20 @@
 package codesquad.web;
 
+import codesquad.HtmlFormDataBuilder;
 import codesquad.domain.QuestionRepository;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.MultiValueMap;
 import support.test.AcceptanceTest;
 
 
 public class QuestionAcceptanceTest extends AcceptanceTest {
     private static final Logger log = LogManager.getLogger(QuestionAcceptanceTest.class);
-
-
-    /*질문 CRUD 기능을 구현한다.
-    모든 사용자는 질문을 볼 수 있다.
-    로그인한 사용자에 대해서만 질문이 가능하다.
-    자신이 작성한 질문에 대해서만 수정/삭제가 가능하다.
-
-    질문 CRUD 기능을 ATDD 기반으로 구현한다.
-    Question 코드에 대한 단위 테스트를 구현한다.
-    프로덕션 코드와 테스트 코드의 중복을 제거한다.
-    QuestionAcceptanceTest, UserAcceptanceTest에서 발생하는 중복 코드를 제거한다.
-*/
 
     @Autowired
     QuestionRepository questionRepository;
@@ -42,8 +33,19 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void create() {
+    public void create() throws Exception {
+        String title = "나는야 peter";
+        HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder
+                .urlEncodedForm()
+                .addParameter("title", title)
+                .addParameter("contents", "test dydydy")
+                .build();
 
+        ResponseEntity<String> response = basicAuthTemplate().postForEntity("/questions", request, String.class);
+        log.debug("body : {}",response.getBody());
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        softly.assertThat(questionRepository.findByTitle(title).isPresent()).isTrue();
+        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/");
     }
 
     @Test
@@ -65,31 +67,66 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void updateFormNoTest() throws Exception {
-        //TODO 수정폼 못넘어가는 테스트 코드작성
+        ResponseEntity<String> response = template().getForEntity("/questions/1/form", String.class);
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        log.debug("body : {}", response.getBody());
     }
 
     @Test
     public void updateFormOkTest() throws Exception {
-        //TODO 수정폼 넘어가는 테스트 코드작성
+        ResponseEntity<String> response = basicAuthTemplate().getForEntity("/questions/1/form", String.class);
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        log.debug("body : {}", response.getBody());
     }
 
     @Test
     public void update() throws  Exception {
-        //TODO 업데이트 ok
+        String title = "하하하";
+        HttpEntity<MultiValueMap<String, Object>> request = update(title);
+        ResponseEntity<String> response = basicAuthTemplate().postForEntity(String.format("/questions/%d", defaltQuestion().getId()), request, String.class);
+
+        log.debug("body : {}",response.getBody());
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith(String.format("/questions/%d", defaltQuestion().getId()));
     }
 
     @Test
     public void update_no() throws  Exception {
-        //TODO 업데이트 no
+        String title = "하하하";
+        HttpEntity<MultiValueMap<String, Object>> request = update(title);
+        ResponseEntity<String> response = template().postForEntity(defaltQuestion().generateUrl(), request, String.class);
+
+        log.debug("body : {}",response.getBody());
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+
+    }
+
+    private HttpEntity<MultiValueMap<String, Object>> update(String title) {
+        return HtmlFormDataBuilder
+                .urlEncodedForm()
+                .put()
+                .addParameter("title", title)
+                .addParameter("contents", "test dydydy")
+                .build();
     }
 
     @Test
     public void deleted() throws  Exception {
         //TODO 삭제 ok
+        HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm().delete().build();
+        ResponseEntity<String> response = basicAuthTemplate().postForEntity(defaltQuestion().generateUrl(),request,String.class);
+        log.debug("body : {}",response.getBody());
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/");
+
     }
 
     @Test
     public void deleted_no() throws  Exception {
         //TODO 삭제 no
+        HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm().delete().build();
+        ResponseEntity<String> response = template().postForEntity(defaltQuestion().generateUrl(),request,String.class);
+        log.debug("body : {}",response.getBody());
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 }
