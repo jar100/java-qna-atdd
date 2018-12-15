@@ -81,8 +81,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void update() throws  Exception {
-        String title = "하하하";
-        HttpEntity<MultiValueMap<String, Object>> request = update(title);
+        HttpEntity<MultiValueMap<String, Object>> request = makeUpdateRequest();
         ResponseEntity<String> response = basicAuthTemplate().postForEntity(String.format("/questions/%d", defaltQuestion().getId()), request, String.class);
 
         log.debug("body : {}",response.getBody());
@@ -92,8 +91,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void update_no() throws  Exception {
-        String title = "하하하";
-        HttpEntity<MultiValueMap<String, Object>> request = update(title);
+        HttpEntity<MultiValueMap<String, Object>> request = makeUpdateRequest();
         ResponseEntity<String> response = template().postForEntity(defaltQuestion().generateUrl(), request, String.class);
 
         log.debug("body : {}",response.getBody());
@@ -101,18 +99,17 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
     }
 
-    private HttpEntity<MultiValueMap<String, Object>> update(String title) {
+    private HttpEntity<MultiValueMap<String, Object>> makeUpdateRequest() {
         return HtmlFormDataBuilder
                 .urlEncodedForm()
                 .put()
-                .addParameter("title", title)
+                .addParameter("title", "하하하")
                 .addParameter("contents", "test dydydy")
                 .build();
     }
 
     @Test
     public void deleted() throws  Exception {
-        //TODO 삭제 ok
         HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm().delete().build();
         ResponseEntity<String> response = basicAuthTemplate().postForEntity(defaltQuestion().generateUrl(),request,String.class);
         log.debug("body : {}",response.getBody());
@@ -123,7 +120,6 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void deleted_no() throws  Exception {
-        //TODO 삭제 no
         HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm().delete().build();
         ResponseEntity<String> response = template().postForEntity(defaltQuestion().generateUrl(),request,String.class);
         log.debug("body : {}",response.getBody());
