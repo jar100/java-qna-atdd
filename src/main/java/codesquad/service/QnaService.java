@@ -48,7 +48,9 @@ public class QnaService {
 
     @Transactional
     public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
-        Question question = findQuestionById(questionId).map(q -> q.deleted(loginUser)).get();
+        findQuestionById(questionId)
+                .map(q -> q.deleted(loginUser))
+                .orElseThrow(() -> new CannotDeleteException("삭제할 수 없습니다."));
     }
 
     public Iterable<Question> findAll() {

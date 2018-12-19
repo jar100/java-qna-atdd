@@ -1,22 +1,19 @@
 package codesquad.web;
 
 import codesquad.domain.Question;
-import codesquad.domain.User;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import support.test.AcceptanceTest;
 
-import static codesquad.domain.QuestionTest.QNA1;
-import static codesquad.domain.QuestionTest.QNA2;
 import static codesquad.domain.QuestionTest.newQuestion;
 import static codesquad.domain.UserTest.JAVAJIGI;
 import static codesquad.domain.UserTest.SANJIGI;
-import static codesquad.domain.UserTest.newUser;
 
 public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     private static final Logger log = LogManager.getLogger(ApiQuestionAcceptanceTest.class);
@@ -28,7 +25,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     @Before
     public void setUp() {
         question = newQuestion(JAVAJIGI);
-        location = createResource(URL,question);
+        location = createResource(URL, question);
     }
 
     @Test
@@ -39,24 +36,15 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void update() {
-        Question question = newQuestion(JAVAJIGI);
-        String location = createResource(URL,question);
-        Question updateQuestion = newQuestion("홍홍홍", "사사사");
+        ResponseEntity<String> responseEntity = updateSetup(basicAuthTemplate());
 
-        ResponseEntity<String> responseEntity =
-                basicAuthTemplate().exchange(location, HttpMethod.PUT, createHttpEntity(updateQuestion), String.class);
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
 
     }
 
     @Test
     public void update_no_login() {
-        Question question = newQuestion(JAVAJIGI);
-        String location = createResource(URL,question);
-        Question updateQuestion = newQuestion("홍홍홍", "사사사");
-
-        ResponseEntity<String> responseEntity =
-                template().exchange(location, HttpMethod.PUT, createHttpEntity(updateQuestion), String.class);
+        ResponseEntity<String> responseEntity = updateSetup(template());
 
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
         log.debug("error message : {}", responseEntity.getBody());
@@ -66,16 +54,16 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void update_other_login() {
-        Question question = newQuestion(JAVAJIGI);
-        String location = createResource(URL,question);
-        Question updateQuestion = newQuestion("홍홍홍", "사사사");
-
-        ResponseEntity<String> responseEntity =
-                basicAuthTemplate(SANJIGI).exchange(location, HttpMethod.PUT, createHttpEntity(updateQuestion), String.class);
+        ResponseEntity<String> responseEntity = updateSetup(basicAuthTemplate(SANJIGI));
 
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
         log.debug("error message : {}", responseEntity.getBody());
 
+    }
+
+    private ResponseEntity<String> updateSetup(TestRestTemplate testRestTemplate) {
+        Question updateQuestion = newQuestion("홍홍홍", "사사사");
+        return testRestTemplate.exchange(location, HttpMethod.PUT, createHttpEntity(updateQuestion), String.class);
     }
 
 }

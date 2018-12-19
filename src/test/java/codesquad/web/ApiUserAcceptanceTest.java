@@ -55,7 +55,6 @@ public class ApiUserAcceptanceTest extends AcceptanceTest {
         User updateUser = new User
                 (original.getId(), original.getUserId(), original.getPassword(),
                         "javajigi2", "javajigi2@slipp.net");
-
         ResponseEntity<String> responseEntity =
                 template().exchange(location, HttpMethod.PUT, createHttpEntity(updateUser), String.class);
 
@@ -70,7 +69,6 @@ public class ApiUserAcceptanceTest extends AcceptanceTest {
 
         User updateUser = new User
                 (newUser.getUserId(), "password", "name2", "javajigi@slipp.net2");
-
         ResponseEntity<String> responseEntity =
                 basicAuthTemplate(defaultUser()).exchange(location, HttpMethod.PUT, createHttpEntity(updateUser), String.class);
 
